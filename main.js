@@ -88,7 +88,7 @@ function render() {
 function circle(rayon, plain=true) {
     var geometry = new THREE.CircleGeometry(rayon, 300);
     if(plain) {
-        var material = new THREE.MeshBasicMaterial( { color: 0x898989 } );
+        var material = new THREE.MeshBasicMaterial( { color: 0x515057 } );
         var circle = new THREE.Mesh( geometry, material );
     }
     else {
