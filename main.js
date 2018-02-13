@@ -3,7 +3,7 @@ var renderer, scene, camera;
 
 var cameraZ = 100;
 
-const scall = 80;
+const scall = 65;
 
 const circleSize = [12.5, 25, 45];
 
@@ -27,7 +27,7 @@ with(Math) {
 }
 
 var listen = [
-    48.98972336,
+    70.98972336,
     38.54596978,
     78.51562328,
     33.40830006,
@@ -51,24 +51,96 @@ Array.prototype.min = function() {
 
 init();
 listen = scallIt(listen);
-axes();
 circle(circleSize[2], true);
 circle(circleSize[1], false);
 circle(circleSize[0], false);
+axes();
+interPoints(new THREE.Vector3(
+    trigoCircle[7][0]*listen[7],
+    trigoCircle[7][1]*listen[7],
+    0));
 // linkPoints();
-displayPoints();
+// displayPoints();
 
 
 var i=0;
 while(i<12) {
-    splineWave(i);
+    // splineWave(i);
     i++;
 }
-// horizontalLine();
-// generateBezierWave();
 render();
 
-/* BASE */
+function interPoints(max=null) {
+
+    var material = new THREE.PointsMaterial( { color: 0xffff00 } );
+
+    var nbPoints = 10;
+    var x = y = 0;
+    var intervalX;
+    var intervalY;
+
+    if(max){
+        console.log(max);
+        x = max.x;
+        y = max.y;
+    }
+    else {
+        while(x==0 && y==0) {
+            x = getRandomInt(-60, 60);
+            y = getRandomInt(-60, 60);
+        }
+    }
+   
+    intervalX = x/nbPoints;
+    intervalY = y/nbPoints;
+
+    var geometry = new THREE.Geometry();
+
+    with(Math) {
+        var i = abs(x)/abs(intervalX);
+        var j = abs(y)/abs(intervalY);
+    }
+
+    while(Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2) )>circleSize[0]) {
+        console.log(circleSize[0] + ' || ' + Math.sqrt( Math.pow(x) + Math.pow(y) ));
+        geometry.vertices.push(new THREE.Vector3(x, y, 0));      
+        x -= intervalX;
+        y -= intervalY;
+        i--;
+        j--;
+    }
+
+    var points = new THREE.Points(geometry, material);
+
+    traceWave(geometry.vertices, new THREE.Vector3(0, 50, 0), new THREE.Vector3(0, -50, 0));
+
+    scene.add(points);
+}
+
+function traceWave(pointsArray, start, end) {
+    var material = new THREE.LineBasicMaterial( { color : `rgb(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)})` } );
+
+    var i=0;
+
+    while(i<pointsArray.length) {
+        var curve = new THREE.SplineCurve([
+            start,
+            pointsArray[i],
+            end]);
+        
+        var points = curve.getPoints( 500 );
+        var geometry = new THREE.BufferGeometry().setFromPoints( points );
+        
+        //Create the final object to add to the scene
+        var curveObject = new THREE.Line( geometry, material );
+    
+        scene.add(curveObject);
+
+        i++;
+    }
+}
+
+
 function init() {
     renderer = new THREE.WebGLRenderer( { alpha: true } ); // init like this
     renderer.setSize( window.innerWidth, window.innerHeight );
