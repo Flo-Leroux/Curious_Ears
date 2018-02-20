@@ -4,14 +4,22 @@
 		<meta charset=utf-8>
 		<title>My first three.js app</title>
 		<style>
-			body { margin: 0; }
-			canvas { width: 50%; height: 50%; background-color: #5c606b; }
+			html, body { margin: 0; padding: 0; overflow: hidden; }
+			canvas {
+				background-color: #5c606b;
+				width: 60%;
+			}
 		</style>
+		<script type="text/javascript" src="js/paper.js"></script>
+		<!-- <script type="text/javascript" src="js/Three.js"></script> -->
+		<!-- <script type="text/javascript" src="Chart.js"></script> -->
+		<script type="text/javascript" src="mainPaper.js" canvas="myCanvas"></script>
 	</head>
 	<body>
+		<canvas id="myCanvas" width='1000' height='1000' resize></canvas>
         <!-- <canvas id="container"></canvas> -->
-		<script src="js/Chart.js"></script>
-		<script src="js/Three.js"></script>
-		<script src="main.js"></script>
+		<!-- <script src="js/Chart.js"></script> -->
+		<!-- <script src="js/Three.js"></script> -->
+		<!-- <script src="main.js"></script> -->
 	</body>
 </html>

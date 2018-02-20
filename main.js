@@ -27,18 +27,18 @@ with(Math) {
 }
 
 var listen = [
-    70.98972336,
-    38.54596978,
-    78.51562328,
-    33.40830006,
-    12.26479929,
-    66.31250841,
-    57.04290894,
-    89.13390786,
-    78.84897795,
-    60.44050702,
-    43.8293792,
-    55.6542152
+    68.58313511,
+    22.35752919,
+    40.87423725,
+    41.61970567,
+    58.84699693,
+    6.043889054,
+    88.99401672,
+    25.10216521,
+    83.51527119,
+    45.83757783,
+    20.04054136,
+    30.14929921
 ];
 
 Array.prototype.max = function() {
@@ -55,40 +55,48 @@ circle(circleSize[2], true);
 circle(circleSize[1], false);
 circle(circleSize[0], false);
 axes();
-interPoints(new THREE.Vector3(
-    trigoCircle[7][0]*listen[7],
-    trigoCircle[7][1]*listen[7],
-    0));
-// linkPoints();
-// displayPoints();
+
+linkPoints();
+displayPoints();
 
 
 var i=0;
 while(i<12) {
+    interPoints(i);
     // splineWave(i);
     i++;
 }
 render();
 
-function interPoints(max=null) {
+function interPoints(nb=null) {
 
     var material = new THREE.PointsMaterial( { color: 0xffff00 } );
 
-    var nbPoints = 10;
+    var nbPoints = 50;
     var x = y = 0;
     var intervalX;
     var intervalY;
+    var max, start, end;
 
-    if(max){
+    if(nb!=null){
+        start = getStartPoint(nb);
+        end = getEndPoint(nb);
+        max = getMaxPoint(nb);
+        console.log(start);
+        console.log(end);
         console.log(max);
         x = max.x;
         y = max.y;
+        console.log(x);
+        console.log(y);
     }
     else {
         while(x==0 && y==0) {
             x = getRandomInt(-60, 60);
             y = getRandomInt(-60, 60);
         }
+        start = getStartPoint(2);
+        end = getEndPoint(4);
     }
    
     intervalX = x/nbPoints;
@@ -99,36 +107,99 @@ function interPoints(max=null) {
     with(Math) {
         var i = abs(x)/abs(intervalX);
         var j = abs(y)/abs(intervalY);
-    }
 
-    while(Math.sqrt( Math.pow(x, 2) + Math.pow(y, 2) )>circleSize[0]) {
-        console.log(circleSize[0] + ' || ' + Math.sqrt( Math.pow(x) + Math.pow(y) ));
-        geometry.vertices.push(new THREE.Vector3(x, y, 0));      
-        x -= intervalX;
-        y -= intervalY;
-        i--;
-        j--;
+        while(sqrt( pow(x, 2) + pow(y, 2) )>circleSize[0]) {
+            geometry.vertices.push(new THREE.Vector3(x, y, 0));      
+            x -= intervalX;
+            y -= intervalY;
+            i--;
+            j--;
+        }
     }
 
     var points = new THREE.Points(geometry, material);
 
-    traceWave(geometry.vertices, new THREE.Vector3(0, 50, 0), new THREE.Vector3(0, -50, 0));
+    traceWave(geometry.vertices, start, end);
 
     scene.add(points);
 }
 
+function getStartPoint(nb) {
+    var start;
+
+    if(nb-2 == -2) {
+        start = [
+            trigoCircle[10][0]*circleSize[0], 
+            trigoCircle[10][1]*circleSize[0]
+        ];
+    }
+    else if(nb-2 == -1) {
+        start = [
+            trigoCircle[11][0]*circleSize[0], 
+            trigoCircle[11][1]*circleSize[0]
+        ];
+    }
+    else {
+        start = [
+            trigoCircle[nb-2][0]*circleSize[0], 
+            trigoCircle[nb-2][1]*circleSize[0]
+        ];
+    }
+
+    console.log(start);
+
+    return new THREE.Vector3(start[0], start[1], 0);
+}
+
+function getEndPoint(nb) {
+    var end;
+
+    if(nb+2 == 12) {
+        end = [
+            trigoCircle[0][0]*circleSize[1],
+            trigoCircle[0][1]*circleSize[1]
+        ];
+    }
+    else if(nb+2 == 13) {
+        end = [
+            trigoCircle[1][0]*circleSize[1],
+            trigoCircle[1][1]*circleSize[1]
+        ];
+    }
+    else {
+        end = [
+            trigoCircle[nb+2][0]*circleSize[1],
+            trigoCircle[nb+2][1]*circleSize[1]
+        ];
+    }
+
+    return new THREE.Vector3(end[0], end[1], 0);
+}
+
+function getMaxPoint(nb) {
+    var max = [
+        trigoCircle[nb][0]*listen[nb],
+        trigoCircle[nb][1]*listen[nb]
+    ];
+
+    return new THREE.Vector3(max[0], max[1], 0);
+}
+
 function traceWave(pointsArray, start, end) {
-    var material = new THREE.LineBasicMaterial( { color : `rgb(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)})` } );
-
+    var color = `rgb(${getRandomInt(0, 255)}, ${getRandomInt(0, 255)}, ${getRandomInt(0, 255)})`;
+    var R = G = B = getRandomInt(0, 255);
     var i=0;
-
     while(i<pointsArray.length) {
+        var material = new THREE.LineBasicMaterial( { color : color } );
+        // G += Math.round(B/60);
+        // R += Math.round(B/60);
+        console.log(R);
         var curve = new THREE.SplineCurve([
             start,
             pointsArray[i],
             end]);
         
-        var points = curve.getPoints( 500 );
+        var points = curve.getPoints( 5000 );
         var geometry = new THREE.BufferGeometry().setFromPoints( points );
         
         //Create the final object to add to the scene
@@ -139,7 +210,6 @@ function traceWave(pointsArray, start, end) {
         i++;
     }
 }
-
 
 function init() {
     renderer = new THREE.WebGLRenderer( { alpha: true } ); // init like this
@@ -231,49 +301,6 @@ function linkPoints() {
 function splineWave(nb) {
     var pointsArray = [];
     var start, end;
-
-    if(nb-2 == -2) {
-        start = [
-            trigoCircle[10][0]*circleSize[0], 
-            trigoCircle[10][1]*circleSize[0]
-        ];
-    }
-    else if(nb-2 == -1) {
-        start = [
-            trigoCircle[11][0]*circleSize[0], 
-            trigoCircle[11][1]*circleSize[0]
-        ];
-    }
-    else {
-        start = [
-            trigoCircle[nb-2][0]*circleSize[0], 
-            trigoCircle[nb-2][1]*circleSize[0]
-        ];
-    }
-
-    if(nb+2 == 12) {
-        end = [
-            trigoCircle[0][0]*circleSize[1],
-            trigoCircle[0][1]*circleSize[1]
-        ];
-    }
-    else if(nb+2 == 13) {
-        end = [
-            trigoCircle[1][0]*circleSize[1],
-            trigoCircle[1][1]*circleSize[1]
-        ];
-    }
-    else {
-        end = [
-            trigoCircle[nb+2][0]*circleSize[1],
-            trigoCircle[nb+2][1]*circleSize[1]
-        ];
-    }
-
-    var max = [
-        trigoCircle[nb][0]*listen[nb],
-        trigoCircle[nb][1]*listen[nb]
-    ];
 
     pointsArray.push(new THREE.Vector2(start[0], start[1]));
     pointsArray.push(new THREE.Vector2(max[0], max[1]));
