@@ -5,6 +5,12 @@ var trigoCircle, listen;
 
 var chart;
 
+var mousePos;
+var pathHeight;
+var tool;
+
+var width, height, center;
+
 with(Math) {
     trigoCircle = [
         [0, 1],
@@ -25,9 +31,9 @@ with(Math) {
 listen = [
     70.98972336,
     38.54596978,
-    78.51562328,
+    78.51562328/* ,
     33.40830006,
-    22.26479929/*, 
+    22.26479929, 
     66.31250841,
     57.04290894,
     89.13390786,
@@ -53,7 +59,47 @@ window.onload = function() {
 	init();
 	// Create a Paper.js Path to draw a line into it:
 	chart = new RadarChart(paper.view.center, getReal(400), listen);
+	var test = new paper.Path.Line(new paper.Point(paper.view.center.x, paper.view.center.y), new paper.Point(chart.path.segments[1].point.x, chart.path.segments[1].point.y));
+	test.strokeColor = 'orange';
+	test.scale(15);
+	console.log(test);
 	paper.view.draw();
+
+	mousePos = new paper.Point(paper.view.center.x/2, paper.view.center.y/2);
+	pathHeight = mousePos.y;
+	pathWidth = mousePos.x;
+
+
+	paper.view.onFrame = function(event) {
+		pathHeight += (paper.view.center.y - mousePos.y - pathHeight) / 10;
+		for (var i = 1; i < chart.maxValues.length; i++) {
+			var sinSeed = event.count + (i + i % 10) * 100;
+			var sinHeight = Math.sin(sinSeed / 200) * pathHeight / 25;
+			var sinWidth = Math.sin(sinSeed / 200) * pathWidth / 25;
+
+			var vector = {
+				x: chart.path.segments[1].point.x - paper.view.center.x,
+				y: chart.path.segments[1].point.y - paper.view.center.y
+			}
+
+			console.log(sinHeight);
+
+			var yPos = paper.view.center.y + vector.y - sinHeight;
+			var xPos = paper.view.center.x + vector.x + sinWidth;
+
+			// console.log(xPos);
+
+			if(i%2==1) {
+				chart.path.segments[1].point.y = yPos;
+				chart.path.segments[1].point.x = xPos;
+			}
+		}
+	}
+	
+	tool = new paper.Tool();
+	tool.onMouseMove = function(event) {
+		mousePos = event.point;
+	}
 }
 
 function init() {
@@ -64,6 +110,10 @@ function init() {
 
 	actual_ratio = paper.view.viewSize.width/original_size.width;
 	last_width = paper.view.viewSize.width;
+
+	center = paper.view.center;
+	width = paper.view.size.width / 2;
+	height = paper.view.size.height / 2;
 }
 
 function getReal(val) {
@@ -175,7 +225,37 @@ class RadarChart {
 			pointsOfPath.push(point);
 			i++;
 		}
+		pointsOfValues = this.interPoints(pointsOfValues);
 		return [pointsOfValues, pointsOfPath];
+	}
+
+	interPoints(points) {
+		console.log(points);
+		var res = [];
+		res.push(points[0]);		
+		for(var i=1; i<points.length; i++) {
+			var vector = {
+				x: points[i].x - points[i-1].x,
+				y: points[i].y - points[i-1].y
+			}
+
+			var inter = new paper.Point(points[i-1].x+vector.x/2, points[i-1].y+vector.y/2);
+			var point = new paper.Path.Circle(inter, 4);
+			point.fillColor = 'yellow';
+			res.push(inter);
+			res.push(points[i]);
+		}
+		vector = {
+			x: points[0].x - points[points.length-1].x,
+			y: points[0].y - points[points.length-1].y
+		}
+
+		inter = new paper.Point(points[points.length-1].x+vector.x/2, points[points.length-1].y+vector.y/2);
+		res.push(inter);
+		
+		var point = new paper.Path.Circle(inter, 4);
+		point.fillColor = 'yellow';
+		return res;
 	}
 
 	linkPoints() {
@@ -191,16 +271,16 @@ class RadarChart {
 		path.strokeColor = 'lightgreen';
 		path.strokeWidth = 2;
 		path.closed = true;
-		path.smooth({ type: 'catmull-rom' });
-		// path.flatten(2);
+		// path.smooth({ type: 'catmull-rom' });
+		path.flatten(4);
 
-		for(var i=1; i<12; i++) {
+		/* for(var i=1; i<12; i++) {
 			var copy = path.clone();
 			copy.scale(1/12*i);
 			// copy.strokeColor = '';
 			copy.fillColor = 'rgba(0, 0, 255, 0.2)';
 			this.copy.push(copy);
-		}
+		} */
 
 		return path;
 	}
