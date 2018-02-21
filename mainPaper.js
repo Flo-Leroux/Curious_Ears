@@ -31,7 +31,7 @@ with(Math) {
 listen = [
     70.98972336,
     38.54596978,
-    78.51562328/* ,
+    78.51562328,
     33.40830006,
     22.26479929, 
     66.31250841,
@@ -40,7 +40,7 @@ listen = [
     78.84897795,
     60.44050702,
     43.8293792,
-    55.6542152 */
+    55.6542152
 ];
 
 Array.prototype.max = function() {
@@ -69,29 +69,43 @@ window.onload = function() {
 	pathHeight = mousePos.y;
 	pathWidth = mousePos.x;
 
+	var vectors = [];
+	for (var i = 0; i < chart.maxValues.length; i++) {
+		vectors.push({
+			x: paper.view.center.x - chart.path.segments[i].point.x,
+			y: paper.view.center.y - chart.path.segments[i].point.y
+		});
+	}
+	console.log(vectors);
+	// console.log(vector);
 
 	paper.view.onFrame = function(event) {
 		pathHeight += (paper.view.center.y - mousePos.y - pathHeight) / 10;
 		for (var i = 1; i < chart.maxValues.length; i++) {
-			var sinSeed = event.count + (i + i % 10) * 100;
-			var sinHeight = Math.sin(sinSeed / 200) * pathHeight / 25;
-			var sinWidth = Math.sin(sinSeed / 200) * pathWidth / 25;
+			var sinSeed = (i + i % 10)/10;
+			var sinHeight = Math.sin(sinSeed / 200);
+			var sinWidth = Math.cos(sinSeed / 200);
 
-			var vector = {
-				x: chart.path.segments[1].point.x - paper.view.center.x,
-				y: chart.path.segments[1].point.y - paper.view.center.y
-			}
+			// console.log(i+i%10);
 
-			console.log(sinHeight);
+			var dir = Math.sqrt( Math.pow(paper.view.center.y-mousePos.y, 2) + Math.pow(paper.view.center.x-mousePos.x, 2))/100;
+			// console.log(dir);
 
-			var yPos = paper.view.center.y + vector.y - sinHeight;
-			var xPos = paper.view.center.x + vector.x + sinWidth;
+			if(i%2==1 && dir>=0) {
+				var rand = getRandomArbitrary(0,2);
+				// console.log(rand);
+				var yPos = vectors[i].y*dir*sinSeed;
+				var xPos = vectors[i].x*dir*sinSeed;
+				var lengthR = Math.sqrt( Math.pow(vectors[i].x, 2) + Math.pow(vectors[i].y, 2) );
+				var length = Math.sqrt( Math.pow(xPos, 2) + Math.pow(yPos, 2) );
+				var percent = lengthR/6;
+				var inf = lengthR-percent;
+				var sup = lengthR+percent;
 
-			// console.log(xPos);
-
-			if(i%2==1) {
-				chart.path.segments[1].point.y = yPos;
-				chart.path.segments[1].point.x = xPos;
+				if(length>=inf && length<=sup) {
+					chart.path.segments[i].point.y = paper.view.center.y - yPos;
+					chart.path.segments[i].point.x = paper.view.center.x - xPos;
+				}
 			}
 		}
 	}
@@ -100,6 +114,10 @@ window.onload = function() {
 	tool.onMouseMove = function(event) {
 		mousePos = event.point;
 	}
+}
+
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
 }
 
 function init() {
@@ -271,8 +289,8 @@ class RadarChart {
 		path.strokeColor = 'lightgreen';
 		path.strokeWidth = 2;
 		path.closed = true;
-		// path.smooth({ type: 'catmull-rom' });
-		path.flatten(4);
+		path.smooth({ type: 'catmull-rom' });
+		// path.flatten(3);
 
 		/* for(var i=1; i<12; i++) {
 			var copy = path.clone();
